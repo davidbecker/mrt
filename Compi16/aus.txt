@@ -1,0 +1,42 @@
+        ENT     UPAUS
+
+UPAUS   STA     ZAHL
+        LDA     TABMERK
+        STA     TAB
+        LDA     ZAHL
+
+ZYKL1   CMP     ZEHN
+        JLT     AUS1
+        LDA     TAB
+        ADD     EINS
+        STA     TAB
+        LDA     ZAHL
+        SUB     ZEHN
+        STA     ZAHL
+        JMP     ZYKL1
+
+AUS1    LDA,I   TAB
+        WRA
+        LDA     TABMERK
+        ADD     ZAHL
+        STA     TAB
+        LDA,I   TAB
+        WRA
+        RET
+
+ZAHL    RST     1
+EINS    DEC     1
+ZEHN    DEC     10
+TAB     RST     1
+TABMERK DEF     TABANF
+TABANF  HEX     30
+        HEX     31
+        HEX     32
+        HEX     33
+        HEX     34
+        HEX     35
+        HEX     36
+        HEX     37
+        HEX     38
+        HEX     39
+

@@ -1,0 +1,61 @@
+        EXT     UPAUS    ;Einbinden des externen Programms zur Ausgabe
+
+START   RDA              ;Eingabe von x für x! aus dem Tastaturpuffer
+        SUB     ASCII    ;Subtrahieren des Offsettes für Ziffern
+        STA     X        ;Speichere die Eingabe als x
+        CMP     NULL
+        JLT     ERROR    ;Fehlerausgabe wenn Eingabe < 0
+        CMP     EINS
+        JLE     PRINT    ;Springe zur Ausgabe wenn x <= 1
+        CMP     VIER     ;Vergleiche mit 4(ab 5 wird das Ergebniss 5-stellig)
+        JGT     ERROR    ;Fehlerausgabe wenn Eingabe > 4
+
+;Die äußere Schleife dient als Kontrolle der Berechnung der inneren Schleife
+;In diesem Teil werden die Start- und Endbedingungen der inneren Schleife festgelegt
+OUTER   LDA     NEXTVAL
+        ADD     EINS
+        STA     NEXTVAL  ;entspricht nextValue += 1
+        LDA     EINS
+        STA     ITERATE  ;Setzt die Zählvariable für die innere Schleife auf 1 zurück(iterate = 1)
+
+
+;In der inneren Schleife wird die Multiplikation realisiert
+;product = (nextValue - 1) * product
+INNER   LDA     BUFFER
+        ADD     PRODUCT
+        STA     BUFFER   ;buffer = buffer + product
+        LDA     ITERATE
+        ADD     EINS
+        STA     ITERATE  ;iterate = iterate + 1
+        CMP     NEXTVAL
+        JNE     INNER    ;Durchlaufe die innere Schleife noch einmal wenn die benötigte Anzahl der Durchgänge noch nicht erreicht ist (iterate != nextValue) -> Sprung
+
+;Dies ist der Fußteil der äußeren Schleife
+;In diesem Teil wird die Abbruchbedingung geprüft
+        LDA     BUFFER
+        STA     PRODUCT  ;product = buffer
+        LDA     NEXTVAL
+        CMP     X        ;Vergleiche mit x
+        JNE     OUTER    ;Durchlaufe die äußere Schleife nocheinmal wenn die Berechnung noch nicht zuende ist (nextValue != x -> Sprung) 
+
+;Ab hier kommt die Ausgabe
+PRINT   LDA     PRODUCT  ;Lade das Ergebnis in den Akkumulator
+        JSB     UPAUS    ;Ruft das Unterprogramm auf, dass den Inhalt des Akkumulators auf dem Bildschirm ausgibt
+        HLT              ;Ende
+
+ERROR   LDA     ERRORS
+        WRA
+        HLT
+
+;Ab hier werden die Variablen definiert
+X       DEC     0        ;speichert die Eingabe für x!
+BUFFER  DEC     1        ;Variable für Zwischenergebnisse
+PRODUCT DEC     1        ;Variable für das Ergebnis
+NEXTVAL DEC     1        ;Variable die die nä
+ITERATE DEC     1        ;Zählvariable für die innere Schleife
+EINS    DEC     1        ;Ersatz für 1
+NULL    DEC     0        ;Ersatz für 0
+VIER    DEC     4        ;Maximaler Wertebereich
+ASCII   DEC     48       ;Offset zur ersten Ziffer in der ASCII-Tabelle
+ERRORS  DEC     45       ;Zeichen für Fehlerausgabe
+

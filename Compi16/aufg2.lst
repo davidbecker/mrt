@@ -1,0 +1,69 @@
+                            ASSEMBLERLISTING
+
+                      FILE: aufg2.txt
+===============================================================================
+ 
+VL        000101010
+V UPAUS  E                            EXT     UPAUS     ;Einbinden des externen Programms zur Ausgabe
+                                                        
+-------------------------------------------------------------------------------
+PA B011100000000000   000   START     RDA               ;Eingabe von x für x! aus dem Tastaturpuffer
+PR B100010000101001   001             SUB     ASCII     ;Subtrahieren des Offsettes für Ziffern
+PR B011010000100001   002             STA     X         ;Speichere die Eingabe als x
+PR B010100000100111   003             CMP     NULL      
+PR B001000000011110   004             JLT     ERROR     ;Fehlerausgabe wenn Eingabe < 0
+PR B010100000100110   005             CMP     EINS      
+PR B001100000011011   006             JLE     PRINT     ;Springe zur Ausgabe wenn x <= 1
+PR B010100000101000   007             CMP     VIER      ;Vergleiche mit 4(ab 5 wird das Ergebniss 5-stellig)
+PR B000010000011110   008             JGT     ERROR     ;Fehlerausgabe wenn Eingabe > 4
+                                                        
+                                                        ;Die äußere Schleife dient als Kontrolle der Berechnung der inneren Schleife
+                                                        ;In diesem Teil werden die Start- und Endbedingungen der inneren Schleife festgelegt
+PR B011000000100100   009   OUTER     LDA     NEXTVAL   
+PR B100000000100110   010             ADD     EINS      
+PR B011010000100100   011             STA     NEXTVAL   ;entspricht nextValue += 1
+PR B011000000100110   012             LDA     EINS      
+PR B011010000100101   013             STA     ITERATE   ;Setzt die Zählvariable für die innere Schleife auf 1 zurück(iterate = 1)
+                                                        
+                                                        
+                                                        ;In der inneren Schleife wird die Multiplikation realisiert
+                                                        ;product = (nextValue - 1) * product
+PR B011000000100010   014   INNER     LDA     BUFFER    
+PR B100000000100011   015             ADD     PRODUCT   
+PR B011010000100010   016             STA     BUFFER    ;buffer = buffer + product
+PR B011000000100101   017             LDA     ITERATE   
+PR B100000000100110   018             ADD     EINS      
+PR B011010000100101   019             STA     ITERATE   ;iterate = iterate + 1
+PR B010100000100100   020             CMP     NEXTVAL   
+PR B001010000001110   021             JNE     INNER     ;Durchlaufe die innere Schleife noch einmal wenn die benötigte Anzahl der Durchgänge noch nicht erreicht ist (iterate != nextValue) -> Sprung
+                                                        
+                                                        ;Dies ist der Fußteil der äußeren Schleife
+                                                        ;In diesem Teil wird die Abbruchbedingung geprüft
+PR B011000000100010   022             LDA     BUFFER    
+PR B011010000100011   023             STA     PRODUCT   ;product = buffer
+PR B011000000100100   024             LDA     NEXTVAL   
+PR B010100000100001   025             CMP     X         ;Vergleiche mit x
+PR B001010000001001   026             JNE     OUTER     ;Durchlaufe die äußere Schleife nocheinmal wenn die Berechnung noch nicht zuende ist (nextValue != x -> Sprung) 
+                                                        
+                                                        ;Ab hier kommt die Ausgabe
+PR B011000000100011   027   PRINT     LDA     PRODUCT   ;Lade das Ergebnis in den Akkumulator
+PREB010000    UPAUS   028             JSB     UPAUS     ;Ruft das Unterprogramm auf, dass den Inhalt des Akkumulators auf dem Bildschirm ausgibt
+PA B010110000000000   029             HLT               ;Ende
+                                                        
+PR B011000000101010   030   ERROR     LDA     ERRORS    
+PA B011110000000000   031             WRA               
+PA B010110000000000   032             HLT               
+                                                        
+                                                        ;Ab hier werden die Variablen definiert
+PA D000000000000000   033   X         DEC     0         ;speichert die Eingabe für x!
+PA D000000000000001   034   BUFFER    DEC     1         ;Variable für Zwischenergebnisse
+PA D000000000000001   035   PRODUCT   DEC     1         ;Variable für das Ergebnis
+PA D000000000000001   036   NEXTVAL   DEC     1         ;Variable die die nä
+PA D000000000000001   037   ITERATE   DEC     1         ;Zählvariable für die innere Schleife
+PA D000000000000001   038   EINS      DEC     1         ;Ersatz für 1
+PA D000000000000000   039   NULL      DEC     0         ;Ersatz für 0
+PA D000000000000100   040   VIER      DEC     4         ;Maximaler Wertebereich
+PA D000000000110000   041   ASCII     DEC     48        ;Offset zur ersten Ziffer in der ASCII-Tabelle
+PA D000000000101101   042   ERRORS    DEC     45        ;Zeichen für Fehlerausgabe
+                                                        
+===============================================================================

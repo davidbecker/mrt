@@ -1,0 +1,41 @@
+TITLE Bibliothek von Makros zum Ein-, bzw. Ausschalten von Leuchten
+;v2012-12-21, David Becker, Winnie T. SAHA SILATSA, Julia Wolff, Patrick Ziegler
+
+.xlist
+include display.bib
+include bit.bib
+
+;###############################################################################
+;Es werden die Maskieren Leuchten "im Image" und am Display eingeschaltet
+;###############################################################################
+turnon		macro badr, adr, maske
+		push ax
+
+		read badr, adr		;Aktuellen Wert aus Abbildung laden,
+		or al, maske		;maskierte Bits setzen,
+		write badr, adr, al	;neues Byte zurueckschreiben.
+
+		pop ax
+		endm
+
+;###############################################################################
+;Die Maskierten Leuchten werden nur im Modus 0 (Punktmodus) ausgeschaltet
+;###############################################################################
+turnoff		macro badr, adr, maske, cflag
+		local turnoff_end	;Zur Vermeidung von Mehrdeutigkeit
+		push ax
+
+		flagstatus cflag, 2	;Es wird aufgrund des Modusbits im
+		cmp al, 1		;Flagspeicher entschieden, ob das
+		je turnoff_end		;loeschen der Leuchte notwendig ist.
+
+		read badr, adr		;Aktuellen Wert aus Abbildung laden,
+		mov ah, maske		;maskierte Bits mit invertierter
+		xor ah, 0FFh		;Maske auf 0 setzen.
+		and al, ah
+		write badr, adr, al	;Neues Byte zurueckschreiben.
+
+turnoff_end:	pop ax
+		endm
+
+.list

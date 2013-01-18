@@ -1,0 +1,53 @@
+TITLE Bibliothek von Makros zur Ueberpruefung der Abbruchbedingungen
+;v2012-12-21, David Becker, Winnie T. SAHA SILATSA, Julia Wolff, Patrick Ziegler
+
+.xlist
+include display.bib
+include bit.bib
+
+;###############################################################################
+;Makro prueft die Abbruchbedingungen, ggf. Reset und Modusaenderung
+;###############################################################################
+abort		macro badr, cflag
+		local endint		;Zur Vermeidung von Mehrdeutigkeit
+		push ax
+		push dx
+
+		mov dx, 379h		;Status von /INT wird geprueft
+		in al, dx		;und danach entschieden, ob
+                flagstatus al, 3	;Modusaenderung und ggf. reset
+		cmp al, 1		;notwendig sind.
+		je endint
+
+		bittoggle cflag, 2	;Modusaenderung wird durch aendern
+		mov cflag, al		;des Modusbits realisiert,
+		writeall badr, 0	;anschliessend reset
+
+endint:		tastatur		;Wenn Taste gedrueckt -> ENDE
+		pop dx
+		pop ax
+		endm
+
+
+;###############################################################################
+;Makro beendet das Programm, wenn Taste auf Tastatur gedrueckt ist
+;###############################################################################
+tastatur 	macro
+		local exit	;Zur Vermeidung von Mehrdeutigkeit
+		local ende	;der Labels bei wiederholtem Aufruf
+		push ax
+
+		mov ah, 1h	;Funktionscode fur Interrupt 16h
+		int 16h		;Interrupt um Tastaturpuffer zu testen
+		jne exit	;Falls eine Taste gedruckt wurde -> Ende
+		jmp ende
+
+exit:		mov ah, 4Ch	;Funktionscode fur Interrupt 21h (Beenden)
+		int 21h		;Befehl zum Beenden des Programms
+
+ende:		nop
+		pop ax
+		endm
+
+.list
+

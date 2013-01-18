@@ -1,0 +1,105 @@
+TITLE Bibliothek fuer Bitmanipulation
+;2012-12-07, David Becker
+;Version 0.2.1
+
+.xlist
+
+;gibt den Inhalt(0/1) eines Bits des uebergebenen Flagbytes in al zurueck
+flagstatus	macro flagbyte, bitnummer
+		push cx
+		mov cl, 1b
+		rol cl, bitnummer	;bitnummer in maske umwandeln
+					;(bitnummer * <<)
+		mov cl, flagbyte
+		and cl, cl		;wendet die Auslesemaske an
+		ror cl, bitnummer	;Ergebnisbit wird an Bit 0
+					;geschoben (bitnummer * >>)
+		pop cx
+		endm
+
+;###############################################################################
+;Manipulation eines einzelnen Bits
+;###############################################################################
+
+;Aendert den Wert eines Bits an der Stelle bitnummer in dem
+;Uebergebenen flagbyte
+;Rueckgabe in al
+bittoggle	macro flagbyte, bitnummer
+		push cx
+		mov cl, 1b
+		rol cl, bitnummer	;bitnummer in maske umwandeln
+					;(bitnummer * <<)
+		mov al, flagbyte
+		xor al, cl		;wendet die Tooglemaske an
+		pop cx
+		endm
+
+;Aendert den Wert eines Bits an der Stelle bitnummer in dem
+;Uebergebenen flagbyte auf 1
+;Rueckgabe in al
+biton		macro flagbyte, bitnummer
+		push cx
+		mov cl, 1b
+		rol cl, bitnummer	;bitnummer in maske umwandeln
+					;(bitnummer * <<)
+		mov al, flagbyte
+		or al, cl		;wendet die zu-1-maske an
+		pop cx
+		endm
+
+;Aendert den Wert eines Bits an der Stelle bitnummer in dem
+;Uebergebenen flagbyte auf 0
+;Rueckgabe in al
+bitoff		macro flagbyte, bitnummer
+		push cx
+		mov cl, 1b
+		rol cl, bitnummer	;bitnummer in maske umwandeln
+					;(bitnummer * <<)
+		not cl			;maske invertieren
+		mov al, flagbyte
+		and al, cl		;wendet die zu-0-maske an
+		pop cx
+		endm
+
+;###############################################################################
+;Manipulation mit Masken
+;###############################################################################
+
+;Wendet die Toggle Maske an
+;An den Stellen an denen in der Maske eine 1 steht, aendert sich der
+;Wert, bei 0 bleibt er wie er ist
+;Rueckgabe in al
+bytetoggle	macro flagbyte, maske
+		push cx
+		mov cl, maske
+		mov al, flagbyte
+		xor al, cl		;wendet die Tooglemaske an
+		pop cx
+		endm
+
+;Wendet die zu-1-Maske an
+;An den Stellen an denen in der Maske eine 1 steht, aendert sich der
+;Wert auf 1, bei 0 bleibt er wie er ist
+;Rueckgabe in al
+byteton		macro flagbyte, maske
+		push cx
+		mov cl, maske
+		mov al, flagbyte
+		or al, cl		;wendet die zu-1-Maske an
+		pop cx
+		endm
+
+;Wendet die zu-0-Maske an
+;An den Stellen an denen in der Maske eine 1 steht, aendert sich der
+;Wert auf 0, bei 0 bleibt er wie er ist
+;Rueckgabe in al
+bytetoff	macro flagbyte, maske
+		push cx
+		mov cl, maske
+		not cl
+		mov al, flagbyte
+		and al, cl		;wendet die zu-0-Maske an
+		pop cx
+		endm
+
+.list

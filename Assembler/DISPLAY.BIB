@@ -1,0 +1,97 @@
+TITLE Bibliothek von Makros zur komm. mit Display und dem Displayimage
+;v2012-12-21, David Becker, Winnie T. SAHA SILATSA, Julia Wolff, Patrick Ziegler
+
+.xlist
+
+;###############################################################################
+;Es wird ein Datum der entsprechenden Adresse im Display nach al geladen
+;###############################################################################
+read		macro badr, adr
+		push bx
+
+		mov bh, 0		;bx vorbereiten, da Register di nur
+		mov bl, adr		;mit dem Register bx zur Berechnung
+		mov di, badr		;der physikalischen Adresse verwendet
+		mov al, [bx+di]		;werden kann.
+
+		pop bx
+		endm
+
+;###############################################################################
+;Es wird ein Datum an die entsprechende Adresse im Display geschrieben
+;###############################################################################
+write		macro badr, adr, data
+		push ax
+		push bx
+
+		mov bh, 0		;Zunaechst wird das Datenbyte in
+		mov bl, adr		;die Displayabbildung im Speicher
+		mov di, badr		;geschrieben.
+		mov al, data		;Verwendung der Register di und bx
+		mov [bx+di], al		;zur Adressberechnung wie in read.
+
+		handover adr		;Danach wird die Aenderung auch am
+		handover data		;Display vollzogen.
+		takeover
+
+		pop bx
+		pop ax
+		endm
+
+;###############################################################################
+;Es werden alle Adressen des Displays mit dem gegebenen Datum ueberschrieben
+;###############################################################################
+writeall	macro badr, data
+		local looping		;Zur Vermeidung von Mehrdeutigkeit
+		push ax
+		push bx
+
+		mov cx, 191		;Es werden alle 192 Adressen (0-191)
+looping:	write badr, cl, data	;mit dem gegebenen Datenbyte ueber-
+		loop looping		;schrieben. Adresse 0 wird in Schleife
+		write badr, 0, data	;nicht erreicht.
+
+		pop bx
+		pop ax
+		endm
+
+;###############################################################################
+;Handover uebergibt dem Display ein Datum (Adresse/Daten) und negiert /SLCT IN
+;###############################################################################
+handover	macro data
+		push ax
+		push dx
+
+		mov al, data		;Es wird das Datum an das
+		mov dx, 378h		;festgelegte Port angelegt (dport).
+		out dx, al		;Es wird nicht die Art des Bytes
+					;geprueft (Adresse/Daten)
+		mov dx, 37Ah
+		in al, dx		;Es folgt das Negieren von /SLCT IN
+		xor al, 00001000b	;zur Uebernahme des angelegten
+		out dx, al		;Bytes in Zwischenspeicher
+
+		pop dx
+		pop ax
+		endm
+
+;###############################################################################
+;Takeover laesst das Display mit /CE-RAM die Zwischenregister uebernehmen
+;###############################################################################
+takeover	macro
+		push ax
+		push dx
+
+		mov dx, 37Ah		;Es wird /CE-RAM zur Uebernahme
+		in al, dx		;der Zwischenregister "in" das
+		xor al, 00000001b	;Display getogglet und danach
+		out dx, al		;wieder zurueckgesetzt um auch
+		xor al, 00000001b	;beim Naechsten Mal die Flanke
+		out dx, al		;geben zu koennen.
+
+		pop dx
+		pop ax
+		endm
+
+.list
+
